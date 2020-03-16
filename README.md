@@ -39,4 +39,4 @@ $ ./main.py ../img/5.jpg
 
 
 ### Licens
-Al koden er licenseret under [MIT licensen](https://github.com/Tiggaard/mmsm/blob/master/LICENSE).
+Al koden er licenseret under [MIT licensen](https://github.com/Tinggaard/mmsm/blob/master/LICENSE).
