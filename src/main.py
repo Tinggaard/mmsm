@@ -1,19 +1,51 @@
 #!/usr/bin/env python
-import cv2
+import sys
+import os.path
+import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-from os import path
+
 
 # load image
 def load(file):
-    img = cv2.imread(file, 1)
-    return cv2.GaussianBlur(img, (11, 11), 5)
+    img = cv.imread(file, 1)
+    return cv.GaussianBlur(img, (11, 11), 5)
 
 
 # resize img by scale amount
 def resize(img, scale):
-    return cv2.resize(img, (0,0), fx=scale, fy=scale)
+    return cv.resize(img, (0,0), fx=scale, fy=scale)
+
+
+# black image at the size of im
+def black(im):
+    return np.zeros(im.shape[0:2], np.uint8)
+
+
+# taken from my earlier project:
+# https://github.com/Tinggaard/set-solver/blob/alpha/cards.py#L35
+def crop(cnt, *images):
+    """Crop images into smaller bits, making it easier on the CPU usage"""
+    assert images is not None
+
+    #Checking that all are in fact images
+    if not all(isinstance(item, np.ndarray) for item in images):
+        raise TypeError('"*images" must be nust be of type: "numpy.ndarray"')
+
+    #Returning the cropped images
+
+    reference_y, reference_x = images[0].shape[:2]
+
+    x,y,w,h = cv.boundingRect(cnt)
+
+    #Ading offset of 2 pixels, so the contours still work properly
+    #Making if else statements, to prevent errors in indexing
+    y1 = y-2 if 2 < y else 0
+    x1 = x-2 if 2 < x else 0
+    y2 = y+h+2 if y+h+2 < reference_y else None
+    x2 = x+w+2 if x+w+2 < reference_x else None
+
+    return [img[y1:y2, x1:x2] for img in images]
 
 
 # show all imgs, with the ability to zoom and read values
@@ -30,7 +62,7 @@ def show_imgs(*imgs):
 
         # hsv to rgb
         if len(imgs[0].shape) == 3:
-            ax.imshow(cv2.cvtColor(imgs[0], cv2.COLOR_HSV2RGB), cmap=cm)
+            ax.imshow(cv.cvtColor(imgs[0], cv.COLOR_HSV2RGB), cmap=cm)
         else:
             ax.imshow(imgs[0], cmap=cm)
 
@@ -44,7 +76,7 @@ def show_imgs(*imgs):
 
         # hsv to rgb
         if len(im.shape) == 3:
-            ax[i].imshow(cv2.cvtColor(im, cv2.COLOR_HSV2RGB), cmap=cm)
+            ax[i].imshow(cv.cvtColor(im, cv.COLOR_HSV2RGB), cmap=cm)
         else:
             ax[i].imshow(im, cmap=cm)
 
@@ -56,45 +88,46 @@ def show_imgs(*imgs):
 # works way better (and faster) than show_imgs
 def show_with_trackbar(img, rgb, lower_init, upper_init):
 
-    cv2.namedWindow('Tracking')
-    cv2.createTrackbar('Lower Hue', 'Tracking', lower_init[0], 180, nothing)
-    cv2.createTrackbar('Lower Sat', 'Tracking', lower_init[1], 255, nothing)
-    cv2.createTrackbar('Lower Val', 'Tracking', lower_init[2], 255, nothing)
+    cv.namedWindow('Tracking')
+    cv.createTrackbar('Lower Hue', 'Tracking', lower_init[0], 180, nothing)
+    cv.createTrackbar('Lower Sat', 'Tracking', lower_init[1], 255, nothing)
+    cv.createTrackbar('Lower Val', 'Tracking', lower_init[2], 255, nothing)
 
-    cv2.createTrackbar('Upper Hue', 'Tracking', upper_init[0], 180, nothing)
-    cv2.createTrackbar('Upper Sat', 'Tracking', upper_init[1], 255, nothing)
-    cv2.createTrackbar('Upper Val', 'Tracking', upper_init[2], 255, nothing)
+    cv.createTrackbar('Upper Hue', 'Tracking', upper_init[0], 180, nothing)
+    cv.createTrackbar('Upper Sat', 'Tracking', upper_init[1], 255, nothing)
+    cv.createTrackbar('Upper Val', 'Tracking', upper_init[2], 255, nothing)
 
     while True:
 
-        l_h = cv2.getTrackbarPos('Lower Hue', 'Tracking')
-        l_s = cv2.getTrackbarPos('Lower Sat', 'Tracking')
-        l_v = cv2.getTrackbarPos('Lower Val', 'Tracking')
+        l_h = cv.getTrackbarPos('Lower Hue', 'Tracking')
+        l_s = cv.getTrackbarPos('Lower Sat', 'Tracking')
+        l_v = cv.getTrackbarPos('Lower Val', 'Tracking')
 
-        u_h = cv2.getTrackbarPos('Upper Hue', 'Tracking')
-        u_s = cv2.getTrackbarPos('Upper Sat', 'Tracking')
-        u_v = cv2.getTrackbarPos('Upper Val', 'Tracking')
+        u_h = cv.getTrackbarPos('Upper Hue', 'Tracking')
+        u_s = cv.getTrackbarPos('Upper Sat', 'Tracking')
+        u_v = cv.getTrackbarPos('Upper Val', 'Tracking')
 
         lower = (l_h, l_s, l_v)
         upper = (u_h, u_s, u_v)
 
         mask = in_range(img, lower, upper)
 
-        res = cv2.bitwise_and(rgb, rgb, mask=mask)
+        res = cv.bitwise_and(rgb, rgb, mask=mask)
 
-        cv2.imshow('file', img)
-        cv2.imshow('mask', mask)
-        cv2.imshow('result', res)
+        cv.imshow('file', img)
+        cv.imshow('mask', mask)
+        cv.imshow('result', res)
 
-        key = cv2.waitKey(1)
+        key = cv.waitKey(1)
         # break on esc or q
-        if key == 27 or key == 81:
+        if key == 27 or key == 113:
             break
 
-    cv2.destroyAllWindows()
+    cv.destroyAllWindows()
+    return cv.bitwise_not(mask) #return inverse mask
 
 
-# callback function used with cv2.createTrackbar function
+# callback function used with cv.createTrackbar function
 def nothing(x):
     pass
 
@@ -112,7 +145,7 @@ def shift_hue(hsv):
 # Convert bgr img to hsv
 def to_hsv(img):
     new = img.copy() # maybe not needed?
-    hsv = cv2.cvtColor(new, cv2.COLOR_BGR2HSV)
+    hsv = cv.cvtColor(new, cv.COLOR_BGR2HSV)
     hue = hsv[:,:,0]
     sat = hsv[:,:,1]
     val = hsv[:,:,2]
@@ -122,50 +155,55 @@ def to_hsv(img):
 
 # save img to destination
 def save(dst, img):
-    dir = path.join('../out/', dst + '.jpg')
-    cv2.imwrite(dir, img)
+    dir = os.path.join('../out/', dst + '.jpg')
+    cv.imwrite(dir, img)
 
 
 # return a mask in the given range over the given image
 def in_range(img, lower, upper):
-    mask = cv2.inRange(img, lower, upper)
+    mask = cv.inRange(img, lower, upper)
     return mask
 
 
 # black square size k*k
 def kernel(k):
-    return cv2.getStructuringElement(cv2.MORPH_RECT,(k,k))
+    # return np.ones(k, k)
+    return cv.getStructuringElement(cv.MORPH_ELLIPSE,(k,k))
+
+
+def apply(mask, img):
+    return cv.bitwise_and(img, img, mask=mask)
 
 
 # erode image with kernel size (remove small contours)
 def erode(mask, kernel):
-    return cv2.erode(mask, kernel)
+    return cv.erode(mask, kernel)
 
 
-# green mask
-def mask_green(img, k=75):
-    m = in_range(img, (20, 0, 0), (90, 255, 255))
-    save('early', m)
-    return erode(m, kernel(k))
+def inv(mask):
+    return cv.bitwise_not(mask)
 
 
-# red mask ish
-def mask_tmp(img, k=25):
-    m1 = in_range(img, (0, 150, 150), (20, 255, 255))
-    m2 = in_range(img, (160, 150, 150), (180, 255, 255))
-    m = cv2.bitwise_or(m1, m2)
-    save('early', m)
-    return erode(m, kernel(k))
+def iterate_contours(contours, hsv):
+    blk = black(hsv)
+    for no, contour in enumerate(contours[-10:]):
+        copy = hsv.copy()
+        mask = cv.drawContours(blk, [contour], -1, (255), -1)
+
+        cp, ms = crop(contour, copy, mask)
+        candy = apply(ms, cp)
+        # save(f'singles/{no}', candy)
 
 
 
-# main program
-if __name__ == '__main__':
+
+
+def main():
     f = sys.argv[1]
     img = load(f)
-    img = resize(img, 0.2)
+    # img = resize(img, 0.2)
     # save('blur', img)
-    hsv, h,s,v = to_hsv(img)
+    hsv, h, s, v = to_hsv(img)
     # save('hue', h)
     # save('sat', s)
     # save('val', v)
@@ -173,18 +211,27 @@ if __name__ == '__main__':
     # threshold values for all candy
     lower, upper = (0, 0, 25), (180, 130, 215)
 
-    show_with_trackbar(hsv, img, lower, upper)
+    # mask = show_with_trackbar(hsv, img, lower, upper)
+    mask = inv(in_range(hsv, lower, upper))
+
+    #opening
+    k = kernel(16)
+    open = cv.morphologyEx(mask, cv.MORPH_OPEN, k)
+    # save('eroded', open)
+
+    cnt, _ = cv.findContours(open, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours = [c for c in cnt if cv.contourArea(c) > 2500]
+
+    antal = len(contours)
+    print(f'Fandt {antal} stykker slik')
+
+    # im = cv.drawContours(img, contours, -1, (0,255,0), 3)
+    # save('contours', im)
+
+    iterate_contours(contours, hsv)
 
 
 
-    # m = mask_tmp(hsv)
-    #
-    # # get centers of contours
-    # retval, labels, stats, centroids = cv2.connectedComponentsWithStats(m, 4, cv2.CV_32S)
-    #
-    # for x,y in centroids[1:]:
-    #     # circle around found contour
-    #     cv2.circle(m,(int(x),int(y)),200,255,2)
-    #     save('mask', m)
-    # # print(retval) # antal
-    # show(hsv, h, s, v, m)
+# main program
+if __name__ == '__main__':
+    main()
