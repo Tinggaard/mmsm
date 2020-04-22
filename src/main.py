@@ -186,7 +186,15 @@ def inv(mask):
 
 def iterate_contours(contours, hsv):
     blk = black(hsv)
-    for no, contour in enumerate(contours[-10:]):
+
+    # [(x,y) - center, color]
+    pieces = []
+
+    for no, contour in enumerate(contours):
+
+    # for no, contour in enumerate(contours[7:29], start=7): #7..28 singles
+    # for no, contour in enumerate(contours[24:29], start=24): #7..28 singles
+
         copy = hsv.copy()
         mask = cv.drawContours(blk, [contour], -1, (255), -1)
 
@@ -194,7 +202,43 @@ def iterate_contours(contours, hsv):
         candy = apply(ms, cp)
         # save(f'singles/{no}', candy)
 
+        hue = [col[0] for row in candy for col in row if col[1] > 100]
 
+        hist, _ = np.histogram(hue, 18, (0,179))
+        s = sum(hist)
+
+        # m = cv.mean(candy, mask=ms)
+        # mean = [round(i) for i in m[:3]]
+
+        #finding the center
+        (x,y), radius = cv.minEnclosingCircle(contour)
+        center = (int(x), int(y))
+
+
+
+        # yellow hue (10-20 is way bigger than everything else)
+        if (hist[1] > (s - hist[1])*2.5) and sum(hist[5:14]) == 0:
+            pieces.append(['yellow', center])
+            print(f'Found yellow at {center} (img {no})')
+            continue
+
+        # red hue (basically only 0-10)
+        if hist[0] > sum(hist[1:])*25:
+            pieces.append(['red', center])
+            print(f'Found red at {center} (img {no})')
+            continue
+
+        # green hue (40-70 is strong)
+        if sum(hist[4:7]) > s - sum(hist[4:7]):
+            pieces.append(['green', center])
+            print(f'Found green at {center} (img {no})')
+            continue
+
+        # print(mean)
+        # print(no)
+        # print(hist)
+
+    print(np.array(pieces))
 
 
 
