@@ -61,6 +61,8 @@ int read() {
   String intData = "";
   int delimiter = (int) '\n';
 
+  // wait for data to arrive
+  while(!Serial.available()) {}
 
   // read data
   while (Serial.available()) {
@@ -114,5 +116,7 @@ void move(int coord, Stepper ud, Stepper lr) {
 
   digitalWrite(13, LOW); // stop sucking
   delay(100); // sleep 100 ms
+
+  Serial.print("Successfully picked up a piece of candy");
 
 }

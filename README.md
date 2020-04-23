@@ -11,7 +11,7 @@ Størstedelen af dette repo er brugt til at teste CV i Python, koden findes unde
 
 
 #### Arduino
-Derudover ligger den også den smule Arduino kode, som er skrevet (lidt i blinde, grundet mangel af mulighed for at teste det pga. corona) i forbindelse med projektet. Arduino koden kan findes under [stepper/](https://github.com/Tinggaard/mmsm/tree/master/stepper).
+Derudover ligger den også den smule Arduino kode, som er skrevet (lidt i blinde, grundet mangel af mulighed for at teste det pga. covid-19) i forbindelse med projektet. Arduino koden kan findes under [stepper/](https://github.com/Tinggaard/mmsm/tree/master/stepper).
 
 
 ## Disclaimer
@@ -53,6 +53,10 @@ F.eks.
 ```shell
 $ ./main.py ../img/5.jpg
 ```
+
+### Om brug
+Der vil være on prompt, som beder brugeren om at vælge type slik, som skal frasorteres, efter dette er indtastet, bliver det samlet op. Programmet kan kategorisere slikket som følger: `yellow`, `red`, `green` og `larve`. Det betyder samtidig at nogle af stykkerne slet ikke falder inden for nogen kategori, navnligt de mørke stykker slik.
+Derudover gøres der opmærksom på, at det i koden skal opsættes, hvilken port Arduinoen er forbundet til på computeren, samt at projektet ikke har været tesetet i virkeligheden grundet covid-19. Al testing er udelukkende foregået på billede 5.
 
 
 ## Licens
