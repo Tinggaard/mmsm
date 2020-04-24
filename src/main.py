@@ -161,26 +161,26 @@ def handle_input(colors):
 
     if s == 'yellow':
         x = [c[1] for c in colors if c[0] == 'yellow']
-        print(f'Found {x} pieces of that choice')
+        print(f'Found {len(x)} pieces of that choice')
         return x
 
     if s == 'red':
         x = [c[1] for c in colors if c[0] == 'red']
-        print(f'Found {x} pieces of that choice')
+        print(f'Found {len(x)} pieces of that choice')
         return x
 
     if s == 'green':
         x = [c[1] for c in colors if c[0] == 'green']
-        print(f'Found {x} pieces of that choice')
+        print(f'Found {len(x)} pieces of that choice')
         return x
 
     if s == 'larve':
         x = [c[1] for c in colors if c[0] == 'larve']
-        print(f'Found {x} pieces of that choice')
+        print(f'Found {len(x)} pieces of that choice')
         return x
 
     print('Input not understood, try again')
-    handle_colors(colors)
+    handle_input(colors)
 
 
 def communicator(pieces):
