@@ -189,7 +189,14 @@ def communicator(pieces):
     port = '/dev/ttyS0'
 
     # Arduino
-    ard = serial.Serial(port, 9600, timeout=5)
+    try:
+        ard = serial.Serial(port, 9600, timeout=5)
+    except:
+        print('Could not connect to the Arduino')
+        print('Prentending to write...')
+        for candy in pieces:
+            print(f'Sending the arm to coordinate: {candy}')
+        return
 
     # iterate locations
     for candy in pieces:
